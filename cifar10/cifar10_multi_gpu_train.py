@@ -49,6 +49,7 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import cifar10
 
+init_lr = 1e-3
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string('train_dir', './cifar10_train',
@@ -151,14 +152,17 @@ def train():
         decay_steps = int(num_batches_per_epoch * cifar10.NUM_EPOCHS_PER_DECAY)
 
         # Decay the learning rate exponentially based on the number of steps.
+        """
         lr = tf.train.exponential_decay(cifar10.INITIAL_LEARNING_RATE,
                                         global_step,
                                         decay_steps,
                                         cifar10.LEARNING_RATE_DECAY_FACTOR,
                                         staircase=True)
-
+        """
+        lr = tf.constant(init_lr)
         # Create an optimizer that performs gradient descent.
-        opt = tf.train.GradientDescentOptimizer(lr)
+        #opt = tf.train.GradientDescentOptimizer(lr)
+        opt = tf.train.AdamOptimizer(lr)
 
         # Calculate the gradients for each model tower.
         tower_grads = []

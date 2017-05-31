@@ -186,7 +186,7 @@ def inputs(eval_data):
     return images, labels
 
 
-def inference(images):
+def inference_0(images):
     """Build the CIFAR-10 model.
 
     Args:
@@ -276,6 +276,225 @@ def inference(images):
 
     return softmax_linear
 
+def inference(self, RawTensor):
+    print RawTensor
+    #InputTensor = tf.reshape(RawTensor, [-1, WIDTH, HEIGHT, 3])
+    #print InputTensor
+    InputTensor = RawTensor
+    # ==========================================================================================
+    # conv1 3-64
+    with tf.variable_scope('conv1') as scope:
+        kernel = _variable_with_weight_decay(
+            'weights', shape=[3, 3, 3, 64], stddev=5e-2, wd=0.0)
+        conv = tf.nn.conv2d(
+            InputTensor, kernel, [
+                1, 1, 1, 1], padding='SAME')
+        biases = _variable_on_cpu(
+            'biases', [64], tf.constant_initializer(0.0))
+        pre_activation = tf.nn.bias_add(conv, biases)
+        conv1 = tf.nn.relu(pre_activation, name=scope.name)
+        _activation_summary(conv1)
+        print conv1
+    # ==========================================================================================
+    # ==========================================================================================
+    # MaxPooling
+    pool1 = tf.nn.max_pool(conv1, ksize=[1, 2, 2, 1], strides=[
+                           1, 2, 2, 1], padding='SAME', name='pool1')
+    # ==========================================================================================
+    # ==========================================================================================
+    # conv3 3-128
+    with tf.variable_scope('conv3') as scope:
+        kernel = _variable_with_weight_decay(
+            'weights', shape=[3, 3, 64, 64], stddev=5e-2, wd=0.0)
+        conv = tf.nn.conv2d(
+            pool1, kernel, [
+                1, 1, 1, 1], padding='SAME')
+        biases = _variable_on_cpu(
+            'biases', [64], tf.constant_initializer(0.0))
+        pre_activation = tf.nn.bias_add(conv, biases)
+        conv3 = tf.nn.relu(pre_activation, name=scope.name)
+        _activation_summary(conv3)
+        print conv3
+    # ==========================================================================================
+    # ==========================================================================================
+    # MaxPooling
+    pool2 = tf.nn.max_pool(conv3, ksize=[1, 2, 2, 1], strides=[
+                           1, 2, 2, 1], padding='SAME', name='pool2')
+    # ==========================================================================================
+    # ==========================================================================================
+    # conv5 3-256
+    with tf.variable_scope('conv5') as scope:
+        kernel = _variable_with_weight_decay(
+            'weights', shape=[3, 3, 64, 128], stddev=5e-2, wd=0.0)
+        conv = tf.nn.conv2d(
+            pool2, kernel, [
+                1, 1, 1, 1], padding='SAME')
+        biases = _variable_on_cpu(
+            'biases', [128], tf.constant_initializer(0.0))
+        pre_activation = tf.nn.bias_add(conv, biases)
+        conv5 = tf.nn.relu(pre_activation, name=scope.name)
+        _activation_summary(conv5)
+        print conv5
+    # ==========================================================================================
+    # ==========================================================================================
+    # conv6 3-256
+    with tf.variable_scope('conv6') as scope:
+        kernel = _variable_with_weight_decay(
+            'weights', shape=[3, 3, 128, 128], stddev=5e-2, wd=0.0)
+        conv = tf.nn.conv2d(
+            conv5, kernel, [
+                1, 1, 1, 1], padding='SAME')
+        biases = _variable_on_cpu(
+            'biases', [128], tf.constant_initializer(0.0))
+        pre_activation = tf.nn.bias_add(conv, biases)
+        conv6 = tf.nn.relu(pre_activation, name=scope.name)
+        _activation_summary(conv6)
+        print conv6
+    # ==========================================================================================
+    # ==========================================================================================
+    # MaxPooling
+    pool3 = tf.nn.max_pool(conv6, ksize=[1, 2, 2, 1], strides=[
+                           1, 2, 2, 1], padding='SAME', name='pool3')
+    # ==========================================================================================
+    # ==========================================================================================
+    # conv9 3-512
+    with tf.variable_scope('conv9') as scope:
+        kernel = _variable_with_weight_decay(
+            'weights', shape=[3, 3, 128, 256], stddev=5e-2, wd=0.0)
+        conv = tf.nn.conv2d(
+            pool3, kernel, [
+                1, 1, 1, 1], padding='SAME')
+        biases = _variable_on_cpu(
+            'biases', [256], tf.constant_initializer(0.0))
+        pre_activation = tf.nn.bias_add(conv, biases)
+        conv9 = tf.nn.relu(pre_activation, name=scope.name)
+        _activation_summary(conv9)
+        print conv9
+    # ==========================================================================================
+    # ==========================================================================================
+    # conv10 3-512
+    with tf.variable_scope('conv10') as scope:
+        kernel = _variable_with_weight_decay(
+            'weights', shape=[3, 3, 256, 256], stddev=5e-2, wd=0.0)
+        conv = tf.nn.conv2d(
+            conv9, kernel, [
+                1, 1, 1, 1], padding='SAME')
+        biases = _variable_on_cpu(
+            'biases', [256], tf.constant_initializer(0.0))
+        pre_activation = tf.nn.bias_add(conv, biases)
+        conv10 = tf.nn.relu(pre_activation, name=scope.name)
+        _activation_summary(conv10)
+        print conv10
+    # ==========================================================================================
+    # ==========================================================================================
+    # MaxPooling
+    pool4 = tf.nn.max_pool(conv10, ksize=[1, 2, 2, 1], strides=[
+                           1, 2, 2, 1], padding='SAME', name='pool4')
+    # ==========================================================================================
+    # ==========================================================================================
+    # conv13 3-512
+    with tf.variable_scope('conv13') as scope:
+        kernel = _variable_with_weight_decay(
+            'weights', shape=[3, 3, 256, 512], stddev=5e-2, wd=0.0)
+        conv = tf.nn.conv2d(
+            pool4, kernel, [
+                1, 1, 1, 1], padding='SAME')
+        biases = _variable_on_cpu(
+            'biases', [512], tf.constant_initializer(0.0))
+        pre_activation = tf.nn.bias_add(conv, biases)
+        conv13 = tf.nn.relu(pre_activation, name=scope.name)
+        _activation_summary(conv13)
+        print conv13
+    # ==========================================================================================
+    # ==========================================================================================
+    # conv14 3-512
+    with tf.variable_scope('conv14') as scope:
+        kernel = _variable_with_weight_decay(
+            'weights', shape=[3, 3, 512, 512], stddev=5e-2, wd=0.0)
+        conv = tf.nn.conv2d(
+            conv13, kernel, [
+                1, 1, 1, 1], padding='SAME')
+        biases = _variable_on_cpu(
+            'biases', [512], tf.constant_initializer(0.0))
+        pre_activation = tf.nn.bias_add(conv, biases)
+        conv14 = tf.nn.relu(pre_activation, name=scope.name)
+        _activation_summary(conv14)
+        print conv14
+    # ==========================================================================================
+    # ==========================================================================================
+    # MaxPooling
+    pool5 = tf.nn.max_pool(conv14, ksize=[1, 2, 2, 1], strides=[
+                           1, 2, 2, 1], padding='SAME', name='pool5')
+    # ==========================================================================================
+    # ==========================================================================================
+    # local1
+    with tf.variable_scope('local1') as scope:
+        reshape = tf.reshape(pool5, [FLAGS.batch_size, -1])
+        dim = reshape.get_shape()[1].value
+        weights = _variable_with_weight_decay(
+            'weights', shape=[dim, 4096], stddev=0.04, wd=0.004)
+        biases = _variable_on_cpu(
+            'biases', [4096], tf.constant_initializer(0.1))
+        local1 = tf.nn.relu(
+            tf.matmul(
+                reshape,
+                weights) + biases,
+            name=scope.name)
+        _activation_summary(local1)
+        #local1_drop = tf.nn.dropout(local1, 0.9)
+        #_activation_summary(local6_drop)
+    print local1
+    # ==========================================================================================
+    # ==========================================================================================
+    # local2
+    with tf.variable_scope('local2') as scope:
+        weights = _variable_with_weight_decay(
+            'weights', shape=[4096, 4096], stddev=0.04, wd=0.004)
+        biases = _variable_on_cpu(
+            'biases', [4096], tf.constant_initializer(0.1))
+        local2 = tf.nn.relu(
+            tf.matmul(
+                local1,
+                weights) + biases,
+            name=scope.name)
+        #local7_drop = tf.nn.dropout(local2, 0.9)
+        _activation_summary(local2)
+    print local2
+    # ==========================================================================================
+    # ==========================================================================================
+    # local3
+    with tf.variable_scope('local3') as scope:
+        weights = _variable_with_weight_decay(
+            'weights', shape=[4096, 1000], stddev=0.04, wd=0.004)
+        biases = _variable_on_cpu(
+            'biases', [1000], tf.constant_initializer(0.1))
+        local3 = tf.nn.relu(
+            tf.matmul(
+                local2,
+                weights) + biases,
+            name=scope.name)
+        #local7_drop = tf.nn.dropout(local3, 0.9)
+        _activation_summary(local3)
+    print local3
+    # ==========================================================================================
+    # ==========================================================================================
+    # linear layer (WX + b)
+    with tf.variable_scope('softmax') as scope:
+        weights = _variable_with_weight_decay(
+            'weights', [1000, NUM_CLASSES], stddev=1 / 1000.0, wd=0.0)
+        biases = _variable_on_cpu(
+            'biases', [NUM_CLASSES], tf.constant_initializer(0.0))
+        softmax_linear = tf.add(
+            tf.matmul(
+                local3,
+                weights),
+            biases,
+            name=scope.name)
+        _activation_summary(softmax_linear)
+        #softmax = tf.nn.softmax(softmax_linear, dim=-1, name=None)
+    print softmax_linear
+    # ==========================================================================================
+    return softmax_linear
 
 def loss(logits, labels):
     """Add L2Loss to all the trainable variables.
