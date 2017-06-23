@@ -45,7 +45,7 @@ import cifar10
 
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('train_dir', '/tmp/cifar10_train',
+tf.app.flags.DEFINE_string('train_dir', './resnet_train',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 tf.app.flags.DEFINE_integer('max_steps', 1000000,
@@ -55,6 +55,8 @@ tf.app.flags.DEFINE_boolean('log_device_placement', False,
 tf.app.flags.DEFINE_integer('log_frequency', 10,
                             """How often to log results to the console.""")
 
+init_lr = 1e-4
+optimizer = 'Adam'
 
 def train():
     """Train CIFAR-10 for a number of steps."""
@@ -66,14 +68,15 @@ def train():
 
         # Build a Graph that computes the logits predictions from the
         # inference model.
-        logits = cifar10.inference(images)
+        resnet = cifar10.ResNet()
+        logits = resnet.Inference(images)
 
         # Calculate loss.
-        loss = cifar10.loss(logits, labels)
+        loss = resnet.loss(logits, labels)
 
         # Build a Graph that trains the model with one batch of examples and
         # updates the model parameters.
-        train_op = cifar10.train(loss, global_step)
+        train_op = resnet.train(loss, global_step, init_lr, optimizer)
 
         class _LoggerHook(tf.train.SessionRunHook):
             """Logs loss and runtime."""
