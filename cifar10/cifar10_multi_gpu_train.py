@@ -48,7 +48,7 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import cifar10
 
-init_lr = 1e-4
+init_lr = 1e-6
 FLAGS = tf.app.flags.FLAGS
 
 tf.app.flags.DEFINE_string('train_dir', './cifar10_train_drop',
@@ -75,11 +75,12 @@ def tower_loss(scope):
     images, labels = cifar10.distorted_inputs()
 
     # Build inference Graph.
-    logits = cifar10.ResNet.Inference(images)
+    resnet = cifar10.ResNet()
+    logits = resnet.Inference(images)
 
     # Build the portion of the Graph calculating the losses. Note that we will
     # assemble the total_loss using a custom function below.
-    _ = cifar10.ResNet.loss(logits, labels)
+    _ = cifar10.loss(logits, labels)
 
     # Assemble all of the losses for the current tower only.
     losses = tf.get_collection('losses', scope)

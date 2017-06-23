@@ -33,7 +33,8 @@ Summary of available functions:
 # pylint: disable=missing-docstring
 from __future__ import absolute_import
 from __future__ import division
-
+from tensorflow.python.ops import control_flow_ops
+from tensorflow.python.training import moving_averages
 import os
 import re
 import sys
@@ -45,6 +46,22 @@ import tensorflow as tf
 import cifar10_input
 
 FLAGS = tf.app.flags.FLAGS
+
+
+MOVING_AVERAGE_DECAY = 0.9997
+BN_DECAY = MOVING_AVERAGE_DECAY
+BN_EPSILON = 0.001
+CONV_WEIGHT_DECAY = 0.00004
+CONV_WEIGHT_STDDEV = 0.1
+FC_WEIGHT_DECAY = 0.00004
+FC_WEIGHT_STDDEV = 0.01
+RESNET_VARIABLES = 'resnet_variables'
+UPDATE_OPS_COLLECTION = 'resnet_update_ops'  # must be grouped with training op
+IMAGENET_MEAN_BGR = [103.062623801, 115.902882574, 123.151630838, ]
+
+WEIGHT_DECAY = 1
+WEIGHT_DECAY_2 = 1
+Keep_Prop = 0.5
 
 Keep_Prop=0.5
 
