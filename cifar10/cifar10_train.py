@@ -58,6 +58,16 @@ tf.app.flags.DEFINE_integer('log_frequency', 10,
 init_lr = 1e-4
 optimizer = 'Adam'
 
+class LossQueue:
+    def __init__(self):
+        self.queue = deque([500] * 100, 100)
+    def enqueue(self, value):
+        self.queue.appendleft(value)
+        self.queue.pop()
+    def avgloss(self):
+        res = list(self.queue)
+        return float(sum(res))/len(res)
+
 def train():
     """Train CIFAR-10 for a number of steps."""
     with tf.Graph().as_default():
@@ -78,42 +88,72 @@ def train():
         # updates the model parameters.
         train_op = resnet.train(loss, global_step, init_lr, optimizer)
 
-        class _LoggerHook(tf.train.SessionRunHook):
-            """Logs loss and runtime."""
+        top_k_op = tf.nn.in_top_k(logits, labels, 1)
+        summary_op = tf.summary.merge_all()
+        init = tf.global_variables_initializer()
+        saver = tf.train.Saver()
+        sess = tf.Session()
+        summary_writer = tf.summary.FileWriter(FLAGS.train_dir, sess.graph)
+        sess.run(init)
+        print "Before Queue"
+        # Start the queue runners.
+        coord = tf.train.Coordinator()
 
-            def begin(self):
-                self._step = -1
-                self._start_time = time.time()
+        print "Before Threads"
+        threads = tf.train.start_queue_runners(coord=coord, sess=sess)
+        loss_queue = LossQueue() 
+        min_loss = loss_queue.avgloss()
+        try:    
+            print "Start"
+            if continueModel != None:
+                saver.restore(sess, continueModel)
+                print "Continue Train Mode. Start with step",sess.run(global_step) 
+                
+            for step in xrange(FLAGS.max_steps):
+                if coord.should_stop():
+                    break
+                start_time = time.time()
 
-            def before_run(self, run_context):
-                self._step += 1
-                return tf.train.SessionRunArgs(loss)  # Asks for loss value.
+                _, loss_value, v_step = sess.run([train_op, loss, global_step])
+                duration = time.time() - start_time
 
-            def after_run(self, run_context, run_values):
-                if self._step % FLAGS.log_frequency == 0:
-                    current_time = time.time()
-                    duration = current_time - self._start_time
-                    self._start_time = current_time
+                assert not np.isnan(loss_value), 'Model diverged with loss = NaN'
 
-                    loss_value = run_values.results
-                    examples_per_sec = FLAGS.log_frequency * FLAGS.batch_size / duration
-                    sec_per_batch = float(duration / FLAGS.log_frequency)
+                if v_step % 10 == 0:
+                    loss_queue.enqueue(loss_value)
+                    #avgloss = loss_queue.avgloss()
+                    num_examples_per_step = FLAGS.batch_size
+                    examples_per_sec = num_examples_per_step / duration
+                    sec_per_batch = duration / FLAGS.num_gpus
+                    format_str = ('%s: step %d, loss = %.5f (%.1f examples/sec; %.3f '
+                      'sec/batch)')
+                    print (format_str % (datetime.now(), v_step, loss_value,
+                             examples_per_sec, sec_per_batch))
+                
+                if v_step % 100 == 0:
+                    prediction = float((np.sum(sess.run(top_k_op))))
+                    print '@ Step {}: \t {} in {} Correct, Batch precision @ 1 ={}'.format(v_step, prediction, self.batch_size, prediction/self.batch_size)
+                    #print accuracy
+                    summary_str = sess.run(summary_op)
+                    summary_writer.add_summary(summary_str, v_step)
 
-                    format_str = ('%s: step %d, loss = %.2f (%.1f examples/sec; %.3f '
-                                  'sec/batch)')
-                    print (format_str % (datetime.now(), self._step, loss_value,
-                                         examples_per_sec, sec_per_batch))
-
-        with tf.train.MonitoredTrainingSession(
-            checkpoint_dir=FLAGS.train_dir,
-            hooks=[tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
-                   tf.train.NanTensorHook(loss),
-                   _LoggerHook()],
-            config=tf.ConfigProto(
-                log_device_placement=FLAGS.log_device_placement)) as mon_sess:
-            while not mon_sess.should_stop():
-                mon_sess.run(train_op)
-
+                # Save the model checkpoint periodically.
+                if v_step % 1000 == 0 or (v_step + 1) == FLAGS.max_steps:
+                    #self.EvalWhileTraining()
+                    avgloss = loss_queue.avgloss()
+                    if avgloss < min_loss:
+                        checkpoint_path = os.path.join(FLAGS.train_dir, 'model.ckpt')
+                        saver.save(sess, checkpoint_path, global_step=v_step)
+                        min_loss = avgloss 
+                        print "Write A CheckPoint at %d with avgloss %.5f" % (v_step, min_loss)
+                    else:
+                        print "Current Min avgloss is %.5f. Last avgloss is %.5f" % ( min_loss, avgloss)
+        except Exception, e:
+            coord.request_stop(e)
+        finally:
+            sess.run(queue.close(cancel_pending_enqueues=True))
+            coord.request_stop()
+            coord.join()
 
 def main(argv=None):  # pylint: disable=unused-argument
     cifar10.maybe_download_and_extract()
