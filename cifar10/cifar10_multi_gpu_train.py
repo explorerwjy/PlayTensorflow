@@ -37,7 +37,6 @@ http://tensorflow.org/tutorials/deep_cnn/
 """
 from __future__ import absolute_import
 from __future__ import division
-from __future__ import print_function
 
 from datetime import datetime
 import os.path
@@ -49,10 +48,10 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import cifar10
 
-init_lr = 1e-3
+init_lr = 1e-4
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('train_dir', './cifar10_train',
+tf.app.flags.DEFINE_string('train_dir', './cifar10_train_drop',
                            """Directory where to write event logs """
                            """and checkpoint.""")
 tf.app.flags.DEFINE_integer('max_steps', 1000000,
@@ -76,11 +75,11 @@ def tower_loss(scope):
     images, labels = cifar10.distorted_inputs()
 
     # Build inference Graph.
-    logits = cifar10.inference(images)
+    logits = cifar10.ResNet.inference(images)
 
     # Build the portion of the Graph calculating the losses. Note that we will
     # assemble the total_loss using a custom function below.
-    _ = cifar10.loss(logits, labels)
+    _ = cifar10.ResNet.loss(logits, labels)
 
     # Assemble all of the losses for the current tower only.
     losses = tf.get_collection('losses', scope)

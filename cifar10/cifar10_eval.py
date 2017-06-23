@@ -45,11 +45,11 @@ import cifar10
 
 FLAGS = tf.app.flags.FLAGS
 
-tf.app.flags.DEFINE_string('eval_dir', '/tmp/cifar10_eval',
+tf.app.flags.DEFINE_string('eval_dir', './cifar10_eval',
                            """Directory where to write event logs.""")
 tf.app.flags.DEFINE_string('eval_data', 'test',
                            """Either 'test' or 'train_eval'.""")
-tf.app.flags.DEFINE_string('checkpoint_dir', '/tmp/cifar10_train',
+tf.app.flags.DEFINE_string('checkpoint_dir', './cifar10_train_drop',
                            """Directory where to read model checkpoints.""")
 tf.app.flags.DEFINE_integer('eval_interval_secs', 60 * 5,
                             """How often to run the eval.""")
@@ -119,6 +119,7 @@ def evaluate():
     with tf.Graph().as_default() as g:
         # Get images and labels for CIFAR-10.
         eval_data = FLAGS.eval_data == 'test'
+        #eval_data = FLAGS.eval_data == 'train'
         images, labels = cifar10.inputs(eval_data=eval_data)
 
         # Build a Graph that computes the logits predictions from the
